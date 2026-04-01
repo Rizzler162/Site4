@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cole Engine v3.2 - Stable</title>
+    <style>
+        :root { --bg: #0a0a0c; --panel: #111; --accent: #00d2ff; --cole-gold: #ffcc00; --text: #ececec; --danger: #ff4757; }
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; height: 100vh; background: var(--bg); color: var(--text); overflow: hidden; }
+        
+        header { 
+            height: 70px; background: #000; 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 0 25px; border-bottom: 1px solid #333; 
+        }
+
+        .title-section { display: flex; flex-direction: column; }
+        .credits { font-size: 10px; color: #666; letter-spacing: 0.5px; margin-bottom: 2px; text-transform: uppercase; }
+        
+        .main-content { display: flex; flex-direction: column; height: calc(100vh - 70px); }
+        
+        #editor { height: 30%; width: 100%; background: #000; color: #adbac7; border: none; padding: 15px; font-family: 'Consolas', monospace; font-size: 13px; resize: none; outline: none; border-bottom: 3px solid var(--accent); box-sizing: border-box; }
+        
+        #preview { height: 70%; width: 100%; background: #222; border: none; }
+        
+        .btn-group { display: flex; gap: 10px; }
+        .btn { border: none; padding: 10px 18px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; text-transform: uppercase; }
+        
+        #clear-btn { background: #222; color: var(--danger); border: 1px solid var(--danger); }
+        #run-btn { background: var(--accent); color: #000; }
+        #ai-btn { background: var(--cole-gold); color: #000; }
+
+        #ai-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; }
+        .ai-modal { background: var(--panel); width: 90%; max-width: 700px; border: 2px solid var(--cole-gold); border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; }
+        .ai-body { padding: 25px; overflow-y: auto; max-height: 60vh; }
+        .finding { margin-bottom: 15px; padding: 12px; background: #1a1a1a; border-left: 4px solid var(--cole-gold); }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="title-section">
+        <span class="credits">Credits to Carter Martyak for inspiring this code tester</span>
+        <strong>COLE ENGINE <small style="color:var(--cole-gold)">v3.2</small></strong>
+    </div>
+    <div class="btn-group">
+        <button id="clear-btn" class="btn">Clear Code</button>
+        <button id="ai-btn" class="btn">✨ Ask Cole AI</button>
+        <button id="run-btn" class="btn">Run Game</button>
+    </div>
+</header>
+
+<div class="main-content">
+    <textarea id="editor" placeholder="Paste your html/css/js here" spellcheck="false"></textarea>
+    <iframe id="preview"></iframe>
+</div>
+
+<div id="ai-overlay">
+    <div class="ai-modal">
+        <div style="padding:15px; background:#222; border-bottom:1px solid #333;"><h2 style="margin:0; color:var(--cole-gold);">Cole AI Diagnostics</h2></div>
+        <div class="ai-body" id="ai-report"></div>
+        <div style="padding: 15px; text-align: right; background: #000;">
+            <button id="copy-btn" class="btn" style="background:#444; color:white;">Copy Report</button>
+            <button onclick="document.getElementById('ai-overlay').style.display='none'" class="btn" style="background:transparent; color:#888;">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const editor = document.getElementById('editor');
+    const preview = document.getElementById('preview');
+
+    document.getElementById('clear-btn').onclick = () => {
+        if(confirm("Clear all code?")) {
+            editor.value = "";
+            preview.srcdoc = " ";
+        }
+    };
+
+    document.getElementById('run-btn').onclick = () => {
+        const content = editor.value;
+        const iframeDoc = preview.contentWindow.document;
+        iframeDoc.open();
+        iframeDoc.write(content);
+        iframeDoc.close();
+    };
+
+    document.getElementById('ai-btn').onclick = () => {
+        const code = editor.value;
+        const report = document.getElementById('ai-report');
+        let issues = [];
+
+        if (!code.trim()) {
+            issues.push("<div class='finding'><b style='color:red;'>[CRITICAL]</b> The editor is empty. Feed me code.</div>");
+        } else {
+            if (!code.includes('shadowMap')) issues.push("<div class='finding'><b>[VISUALS]</b> Your pieces lack shadows. Realism is low. Fix it.</div>");
+            if (!code.includes('Audio')) issues.push("<div class='finding'><b>[IMMERSION]</b> Why is it silent? Add sound effects for user feedback.</div>");
+            if (!code.includes('OrbitControls')) issues.push("<div class='finding'><b>[CAMERA]</b> Static cameras are for 2D. Add OrbitControls for 360 view.</div>");
+            issues.push("<div class='finding'><b style='color:var(--accent);'>[NEXT STEP]</b> Basic rendering is detected. Implement complex logic like move validation or AI opponents next.</div>");
+        }
+
+        report.innerHTML = issues.join('');
+        document.getElementById('ai-overlay').style.display = 'flex';
+    };
+
+    document.getElementById('copy-btn').onclick = () => {
+        navigator.clipboard.writeText(`COLE AI REPORT:\n${document.getElementById('ai-report').innerText}\n\nCODE:\n${editor.value}`);
+        alert("Report copied!");
+    };
+</script>
+</body>
+</html>
